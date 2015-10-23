@@ -14,7 +14,7 @@
 
 (defn ball [cursor owner]
   (om/component
-    (let [[x y] @cursor]
+    (let [[x y] cursor]
       (html [:circle {:cx x 
                       :cy y 
                       :r RADIUS 
@@ -49,4 +49,21 @@
             (om/build paddle (get cursor :1up))
             (om/build paddle (get cursor :2up))]])))
 
+(defn animated-pong 
+  [cursor owner {:keys [clock-interval]}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:clock (clock (or clock-interval 10))})
+    om/IWillMount
+    (will-mount [_]
+      (let [[clock] (om/get-state owner :clock)]
+        (go-loop []
+                (let [_ (<! clock)
+                      ball (:ball @cursor)] 
+                  (om/update! cursor [:ball] (map #(+ 0.2 %) ball))
+                  (recur)))))
+    om/IRender
+    (render [_]
+      (om/build pong cursor))))
 

@@ -4,14 +4,14 @@
     [om.core :as om]
     [sablono.core :as sab :include-macros true]
     [pongcards.canvas :refer [pong-field pong-animations]]
-    [pongcards.svg :refer [pong]])
+    [pongcards.svg :refer [pong animated-pong]])
   (:require-macros
     [devcards.core :as dc :refer [defcard deftest]]))
 
 (enable-console-print!)
 
 (defcard svg-card
-  (dc/om-root pong)
+  (dc/om-root animated-pong)
   {:ball [50 50] 
    :1up [25 25]
    :2up [600 75]}
