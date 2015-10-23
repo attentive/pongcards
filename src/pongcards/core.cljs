@@ -13,14 +13,14 @@
 (defcard svg-card
   (dc/om-root pong)
   {:ball [50 50] 
-   :1up [[25 40] [30 70]]}
+   :1up [25 25]
+   :2up [600 75]}
   {:padding false}) 
 
 (defcard canvas-card
   (dc/om-root pong-field)
   (atom pong-animations)
   {:padding false})
-
 
 (defn main []
   ;; conditionally start the app based on wether the #main-app-area
@@ -29,7 +29,4 @@
     (js/React.render (sab/html [:div "This is working"]) node)))
 
 (main)
-
-;; remember to run lein figwheel and then browse to
-;; http://localhost:3449/cards.html
 

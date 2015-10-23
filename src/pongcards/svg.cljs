@@ -7,32 +7,46 @@
   (:require-macros [cljs.core.async.macros :refer [go-loop]]
                    [devcards.core :as dc :refer [defcard deftest]]))
 
+(def PADDLE-WIDTH 10)
+(def PADDLE-LENGTH 25)
+(def RADIUS 10)
+
+
 (defn ball [cursor owner]
   (om/component
     (let [[x y] @cursor]
       (html [:circle {:cx x 
                       :cy y 
-                      :r 10 
+                      :r RADIUS 
                       :stroke "black" 
                       :stroke-width "1" 
                       :fill "white"}]))))
 
 (defn paddle [cursor owner]
   (om/component    
-    (let [[[tlx tly] [brx bry]] @cursor] 
+    (let [[x y] @cursor
+          tlx (- x PADDLE-WIDTH)
+          tly (- y PADDLE-LENGTH)
+          w (* 2 PADDLE-WIDTH)
+          h (* 2 PADDLE-LENGTH)] 
       (html [:rect {:x tlx 
                     :y tly 
-                    :width (+ tlx (- brx tlx)) 
-                    :height (+ tly (- bry tly))
-                    :style {:fill "yellow"}}]))))
+                    :width w 
+                    :height h
+                    :style {:fill "yellow"
+                            :stroke "black" 
+                            :stroke-width "1"}}]))))
 
 (defn pong [cursor owner]
   (om/component
     (html [:div 
            [:svg
-            {:style {:background-color "#33bb77"}
+            {:style {:background-color "#33bb77"
+                     :border-width "3px" 
+                     :border-color "white"}
              :width "100%" :height "500px"}
             (om/build ball (get cursor :ball))
-            (om/build paddle (get cursor :1up))]])))
+            (om/build paddle (get cursor :1up))
+            (om/build paddle (get cursor :2up))]])))
 
 

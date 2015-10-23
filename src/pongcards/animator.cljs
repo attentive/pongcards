@@ -22,8 +22,8 @@
   [index]
   [:canvas
    {:id (canvas-id index)
-    :style #js {:position "absolute" :left "0px" :top "0px"
-                :z-index (z-level index)}
+    :style {:position "absolute" :left "0px" :top "0px"
+            :z-index (z-level index)}
     :width "800px" :height "400px"}])
 
 
@@ -33,30 +33,30 @@
   (reify
     om/IInitState
     (init-state
-     [this]
-     {:clock (clock (or clock-interval 10))})
-   ;; :start-time must be injected
+      [this]
+      {:clock (clock (or clock-interval 10))})
+    ;; :start-time must be injected
 
     om/IWillMount
     (will-mount
-     [_]
-     (let [[clock] (om/get-state owner :clock)]
-       (go-loop []
-                (let [now (<! clock)
-                      elapsed-time (- now (om/get-state owner :start-time))]
-                  (om/set-state! owner :elapsed-time elapsed-time))
-                (recur))))
+      [_]
+      (let [[clock] (om/get-state owner :clock)]
+        (go-loop []
+                 (let [now (<! clock)
+                       elapsed-time (- now (om/get-state owner :start-time))]
+                   (om/set-state! owner :elapsed-time elapsed-time))
+                 (recur))))
 
     om/IRenderState
     (render-state
-     [_ {:keys [elapsed-time] :as state}]
-     (doseq [index (range (count animations))]
-       (let [animation (nth animations index)
-             canvas (get-canvas index)
-             update (:update animation)]
-         (when canvas
-           (update elapsed-time canvas animation))))
+      [_ {:keys [elapsed-time] :as state}]
+      (doseq [index (range (count animations))]
+        (let [animation (nth animations index)
+              canvas (get-canvas index)
+              update (:update animation)]
+          (when canvas
+            (update elapsed-time canvas animation))))
 
-     (html
-      [:div {}
-       (map make-canvas (range (count animations)))]))))
+      (html
+        [:div {}
+         (map make-canvas (range (count animations)))]))))
