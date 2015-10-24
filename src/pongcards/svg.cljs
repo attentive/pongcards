@@ -3,14 +3,14 @@
             [om.dom :as dom]
             [sablono.core :refer-macros [html]]
             [cljs.core.async :refer [<!]]
-            [pongcards.clock :refer [clock]])
+            [pongcards.clock :refer [clock]]
+            [pongcards.keypresses :refer [listen-keypresses]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]
                    [devcards.core :as dc :refer [defcard deftest]]))
 
 (def PADDLE-WIDTH 10)
 (def PADDLE-LENGTH 25)
 (def RADIUS 10)
-
 
 (defn ball [cursor owner]
   (om/component
@@ -39,12 +39,12 @@
 
 (defn pong [cursor owner]
   (om/component
-    (html [:div 
+    (html [:div {:style {:height "100%"}}
            [:svg
             {:style {:background-color "#33bb77"
                      :border-width "3px" 
                      :border-color "white"}
-             :width "100%" :height "500px"}
+             :width "100%" :height "600px"}
             (om/build ball (get cursor :ball))
             (om/build paddle (get cursor :1up))
             (om/build paddle (get cursor :2up))]])))
@@ -61,9 +61,33 @@
         (go-loop []
                 (let [_ (<! clock)
                       ball (:ball @cursor)] 
-                  (om/update! cursor [:ball] (map #(+ 0.2 %) ball))
+                  (om/update! cursor [:ball 0] (mod (+ 2 (ball 0)) 1000))
+                  (om/update! cursor [:ball 1] (mod (+ 2 (ball 1)) 800))
                   (recur)))))
     om/IRender
     (render [_]
       (om/build pong cursor))))
+
+(defn interactive-pong
+  [cursor owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      (let [keypresses (listen-keypresses (.-body js/document)
+                                    {119 :1up-up
+                                     115 :1up-down
+                                     111 :2up-up
+                                     108 :2up-down
+                                     13 :enter})]
+        (go-loop []
+                 (let [keypress (<! keypresses)]
+                   (om/set-state! owner :text (str keypress)))
+                 (recur))
+        {:text "waiting ..."}))
+    om/IRenderState
+    (render-state [_ {:keys [text]}]
+      (html [:div [:h4 text]]))))
+
+
+
 

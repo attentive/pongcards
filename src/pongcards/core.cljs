@@ -4,7 +4,7 @@
     [om.core :as om]
     [sablono.core :as sab :include-macros true]
     [pongcards.canvas :refer [pong-field pong-animations]]
-    [pongcards.svg :refer [pong animated-pong]])
+    [pongcards.svg :refer [pong animated-pong interactive-pong]])
   (:require-macros
     [devcards.core :as dc :refer [defcard deftest]]))
 
@@ -21,6 +21,9 @@
   (dc/om-root pong-field)
   (atom pong-animations)
   {:padding false})
+
+(defcard keypress-card
+  (dc/om-root interactive-pong))
 
 (defn main []
   ;; conditionally start the app based on wether the #main-app-area
