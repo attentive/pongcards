@@ -1,5 +1,5 @@
 (ns pongcards.keypresses
-  (:require [cljs.core.async :refer [put! <! chan timeout]]
+  (:require [cljs.core.async :refer [put! <! chan timeout pub sub]]
             [goog.events :as events])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
@@ -12,5 +12,10 @@
                                  keypress (get code-map code)]
                              ;(println "keypress: " code)
                              (if keypress (put! out keypress)))))
+    (pub out (constantly :keypress))))
+
+(defn sub-keypresses [p]
+  (let [out (chan)]
+    (sub p :keypress out)
     out))
 

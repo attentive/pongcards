@@ -4,7 +4,7 @@
             [sablono.core :refer-macros [html]]
             [cljs.core.async :refer [<!]]
             [pongcards.clock :refer [clock]]
-            [pongcards.keypresses :refer [listen-keypresses]])
+            [pongcards.keypresses :refer [listen-keypresses sub-keypresses]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]
                    [devcards.core :as dc :refer [defcard deftest]]))
 
@@ -14,7 +14,7 @@
 
 (defn ball [cursor owner]
   (om/component
-    (let [[x y] cursor]
+    (let [[x y] (:position cursor)]
       (html [:circle {:cx x 
                       :cy y 
                       :r RADIUS 
@@ -24,7 +24,7 @@
 
 (defn paddle [cursor owner]
   (om/component    
-    (let [[x y] @cursor
+    (let [[x y] (:position cursor)
           tlx (- x PADDLE-WIDTH)
           tly (- y PADDLE-LENGTH)
           w (* 2 PADDLE-WIDTH)
@@ -59,35 +59,55 @@
     (will-mount [_]
       (let [[clock] (om/get-state owner :clock)]
         (go-loop []
-                (let [_ (<! clock)
-                      ball (:ball @cursor)] 
-                  (om/update! cursor [:ball 0] (mod (+ 2 (ball 0)) 1000))
-                  (om/update! cursor [:ball 1] (mod (+ 2 (ball 1)) 800))
-                  (recur)))))
+                 (let [_ (<! clock)
+                       ball (:ball @cursor)] 
+                   (om/update! cursor [:ball 0] (mod (+ 2 (ball 0)) 1000))
+                   (om/update! cursor [:ball 1] (mod (+ 2 (ball 1)) 800))
+                   (recur)))))
     om/IRender
     (render [_]
       (om/build pong cursor))))
+
+(defonce pong-keypresses 
+  (listen-keypresses (.-body js/document)
+                     {119 :1up-up
+                      115 :1up-down
+                      111 :2up-up
+                      108 :2up-down
+                      13 :enter}))
+
+(defn sub-pong-keypresses []
+  (sub-keypresses pong-keypresses))                  
 
 (defn interactive-pong
   [cursor owner]
   (reify
     om/IInitState
     (init-state [_]
-      (let [keypresses (listen-keypresses (.-body js/document)
-                                    {119 :1up-up
-                                     115 :1up-down
-                                     111 :2up-up
-                                     108 :2up-down
-                                     13 :enter})]
+      (let [keypresses (sub-pong-keypresses)]
         (go-loop []
                  (let [keypress (<! keypresses)]
                    (om/set-state! owner :text (str keypress)))
-                 (recur))
-        {:text "waiting ..."}))
+                 (recur)))
+      {:text "waiting for first keypress ..."})
     om/IRenderState
     (render-state [_ {:keys [text]}]
       (html [:div [:h4 text]]))))
 
 
+(defn moving-pong
+  [cursor owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      (let [keypresses (sub-pong-keypresses)]
+        (go-loop []
+                 (let [keypress (<! keypresses)]
+                   (om/set-state! owner :text (str keypress)))
+                 (recur)))
+      {:text "waiting ..."})
+    om/IRenderState
+    (render-state [_ {:keys [text]}]
+      (html [:div [:h4 text]]))))
 
 
